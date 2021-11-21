@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">CardExam</string>
+
+    <!-- Message -->
+    <string name="msg_network_error">لطفا وضعیت اینترنت خود را بررسی کنید</string>
+    <string name="msg_exit">برای خروج دوباره دکمه برگشت رو بزنید</string>
+</resources>
