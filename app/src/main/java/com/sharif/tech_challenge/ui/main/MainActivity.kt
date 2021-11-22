@@ -79,20 +79,29 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
     //region manage
     private fun manageSuccess(data: CardModel) {
         loading = false
+        mViewBinding.constContainer?.show()
+        mViewBinding.tvError?.hide()
+
         arrayData.addAll(data.cards)
     }
 
     private fun <T> manageError(api: String, resultNet: T) {
         loading = false
+        mViewBinding.constContainer?.hide()
+        mViewBinding.tvError?.show()
+
         when(api){
             "Api" -> {
                 Log.e("",(resultNet as ResultNet.ErrorApi<*>).errorCls?.message!!)
+                mViewBinding.tvError?.text = (resultNet as ResultNet.ErrorApi<*>).errorCls?.message!!
             }
             "Exception" -> {
                 Log.e("",(resultNet as ResultNet.ErrorException<*>)?.message!!)
+                mViewBinding.tvError?.text = (resultNet as ResultNet.ErrorException<*>)?.message!!
             }
             "Net"-> {
                 Log.e("",(resultNet as ResultNet.ErrorNetwork<*>)?.message!!)
+                mViewBinding.tvError?.text = (resultNet as ResultNet.ErrorNetwork<*>)?.message!!
             }
         }
     }
@@ -107,11 +116,9 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
         when(value){
             true -> {
                 mViewBinding.progressBar?.show()
-                mViewBinding.constContainer?.hide()
             }
             false -> {
                 mViewBinding.progressBar?.hide()
-                mViewBinding.constContainer?.show()
             }
         }
     }
