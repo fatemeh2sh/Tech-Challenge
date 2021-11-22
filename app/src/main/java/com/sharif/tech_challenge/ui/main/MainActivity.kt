@@ -14,15 +14,20 @@ import com.sharif.tech_challenge.R
 import com.sharif.tech_challenge.data.model.CardModel
 import com.sharif.tech_challenge.data.model.CardResult
 import com.sharif.tech_challenge.databinding.ActivityMainBinding
+import com.sharif.tech_challenge.service.sound.Sound
+import com.sharif.tech_challenge.service.vibrate.Vibrate
 import com.sharif.tech_challenge.ui.base.BaseActivity
 import com.sharif.tech_challenge.utils.createRandom
-import com.sharif.tech_challenge.utils.extensions.hide
-import com.sharif.tech_challenge.utils.extensions.loadImage
-import com.sharif.tech_challenge.utils.extensions.show
+import com.sharif.tech_challenge.utils.extensions.*
 import com.sharif.tech_challenge.utils.networkHelper.ResultNet
 import com.sharif.tech_challenge.utils.playMusic
 import com.sharif.tech_challenge.utils.vibrate
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnClickListener {
@@ -35,15 +40,13 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
 
     companion object{
         val arrayData = arrayListOf<CardResult>()
-        val arrayShow = arrayListOf<Int>()
+        val arrayShow = arrayListOf<CardResult>()
         var randomNumber : Int = -1
+        lateinit var itemCard:CardResult
     }
-
-    var media:MediaPlayer ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
         getData()
 
@@ -76,11 +79,6 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
     //region manage
     private fun manageSuccess(data: CardModel) {
         loading = false
-//        var i = playMusic("")
-//        Handler(Looper.getMainLooper()).postDelayed({
-//            i.stop()
-//        },2000
-//        )
         arrayData.addAll(data.cards)
     }
 
@@ -101,6 +99,10 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
     //endregion
 
     //region util
+    private fun click(){
+        mViewBinding.btnTry.setOnClickListener(this)
+    }
+
     private fun showLoading(value: Boolean){
         when(value){
             true -> {
@@ -108,108 +110,106 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
                 mViewBinding.constContainer?.hide()
             }
             false -> {
-               // mViewBinding.progressBar?.hide()
-                findViewById<ProgressBar>(R.id.progressBar).hide()
-               // mViewBinding.constContainer?.show()
-                findViewById<ProgressBar>(R.id.constContainer).show()
+                mViewBinding.progressBar?.hide()
+                mViewBinding.constContainer?.show()
             }
-
         }
     }
-    private fun click(){
-      //  mViewBinding.btnTry.setOnClickListener(this)
-        findViewById<Button>(R.id.btnTry).setOnClickListener(this)
+
+    private fun isItemRepeat(number :Int): Boolean {
+        var item : CardResult ?= null
+        var find = false
+
+        if(arrayData.size == arrayShow.size){
+            arrayShow.clear()
+            //return find
+        }
+
+        for(i in 0 until arrayData.size) {
+            if(number == arrayData[i].code) {
+                item = arrayData[i]
+                find = false
+
+                for (j in 0 until arrayShow.size) {
+                    if (item == arrayShow[j]){
+                        find = true
+                    }
+                }
+
+                if(!find) {
+                    item?.let {
+                        itemCard = it
+                        addToArray(it)
+                    }
+                    return find
+                }
+            }
+        }
+
+        return find
     }
+
+    private fun addToArray(item: CardResult){
+        arrayShow.add(item)
+    }
+
 
     private fun showCard(){
-        media?.let {
-            it.stop()
-        }
-
         var newNumber = createRandom()
         Toast.makeText(this,newNumber.toString(),Toast.LENGTH_SHORT).show()
-        Log.e("random", "$newNumber ppppp")
-      //  if(!isFindNumberRandom(newNumber)) {
-           // arrayRandomNumber.add(newNumber)
+        Log.e("random", "$newNumber ")
 
-        randomNumber = newNumber
-        var item = getCard(randomNumber)
-        findViewById<CardView>(R.id.cardMaterial).show()
-        findViewById<TextView>(R.id.tvTitle).text = item?.title
-        findViewById<TextView>(R.id.tvDesc).text = item?.description
+        if(!isItemRepeat(newNumber)) {
+            mViewBinding.btnTry.show()
 
-        item?.let {
-            checkCard(it)
-            checkTheme(it)
+            randomNumber = newNumber
+
+            itemCard?.let {
+                mViewBinding.cardMaterial.show()
+                mViewBinding.tvTitle.text = it?.title
+                mViewBinding.tvDesc.text = it?.description
+
+                changeTheme(it)
+                actionCard(it)
+            }
+
+        } else {
+            showCard()
         }
-
-//        } else {
-//            showCard()
-//        }
-    }
-
-    private fun isRepeat(numberRandom:Int):Boolean {
-       if(isMaxSize())
-           return false
-       else {
-           arrayShow.forEach {
-               if (it == numberRandom)
-                   return true
-           }
-           return false
-       }
-    }
-
-    private fun isMaxSize() : Boolean {
-        if(arrayShow.size == arrayData.size) {
-            arrayShow.clear()
-            return true
-        }
-       return false
     }
 
     //endregion
 
     //region card
-    private fun getCard(randomCode:Int): CardResult? {
-        var itemCard:CardResult ?= null
-        arrayData.forEach {
-            if(it.code == randomCode) {
-               return it
-            }
-        }
-        return itemCard
-    }
-
-    private fun checkCard(item:CardResult) {
+    private fun actionCard(item:CardResult) {
         when(item.code){
             0 -> {
-                findViewById<ImageView>(R.id.imgCard).show()
-                findViewById<ImageView>(R.id.imgCard).loadImage(item.image)
+                mViewBinding.imgCard.show()
+                mViewBinding.imgCard.loadImage(item.image)
             }
             1 -> {
-                findViewById<ImageView>(R.id.imgCard).hide()
-                vibrate(this)
+                mViewBinding.imgCard.hide()
+                mViewModel.startVibrate()
             }
             2 -> {
-                findViewById<ImageView>(R.id.imgCard).hide()
+                mViewBinding.imgCard.hide()
                 item.sound?.let {
-                    media = playMusic(it)
+                    mViewModel.playSound(it)
                 }
             }
         }
     }
 
-    private fun checkTheme(item: CardResult){
+    private fun changeTheme(item: CardResult){
         when(item.tag){
             "sport" -> {
-                findViewById<CardView>(R.id.cardMaterial).backgroundTintList = getColorStateList(android.R.color.holo_blue_light)
+                mViewBinding.cardMaterial.backgroundTintList = getColorStateList(android.R.color.holo_blue_light)
             }
             "art" -> {
-                findViewById<CardView>(R.id.cardMaterial).backgroundTintList = getColorStateList(android.R.color.holo_red_light)
+                mViewBinding.cardMaterial.backgroundTintList = getColorStateList(android.R.color.holo_red_light)
             }
             "fun" -> {
-                findViewById<CardView>(R.id.cardMaterial).backgroundTintList = getColorStateList(android.R.color.holo_green_dark)
+                mViewBinding.cardMaterial.backgroundTintList = getColorStateList(android.R.color.holo_green_dark)
             }
         }
     }
@@ -226,8 +226,16 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
     override fun onClick(v: View?) {
         when(v?.id){
             R.id.btnTry -> {
+                mViewBinding.btnTry.hide()
+                mViewModel.stopSound()
                 showCard()
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        mViewModel.stopSound()
     }
 }
