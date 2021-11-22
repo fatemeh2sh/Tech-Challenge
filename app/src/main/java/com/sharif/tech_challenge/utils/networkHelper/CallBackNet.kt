@@ -25,8 +25,7 @@ object CallBackNet {
 
             ResultNet.ErrorApi(
                 HandleErrorNet.parseCustomError(
-                    errorBodyJson = errorBody?.string() ?: ""
-                )
+                    errorBodyJson = errorBody?.string() ?: "")
             )
         } else {
             return if (response.body() == null) {
