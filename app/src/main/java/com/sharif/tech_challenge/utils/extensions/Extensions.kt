@@ -1,8 +1,8 @@
 package com.sharif.tech_challenge.utils.extensions
 
 import android.view.View
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
+import android.widget.ImageView
+import com.squareup.picasso.Picasso
 
 fun View.show() {
     visibility = View.VISIBLE
@@ -24,14 +24,12 @@ fun View.deActive() {
     isEnabled = false
 }
 
-inline fun <reified T> String.toConvertStringJsonToModel(type: Class<T>): T {
-    val moshi = Moshi.Builder().build()
-    val adapter: JsonAdapter<T> = moshi.adapter(type)
-    return adapter.fromJson(this)!!
-}
+fun ImageView.loadImage(path: String?) {
+    path?.let {
+        if (it.isNotEmpty())
+            Picasso.get()
+                .load(path)
+                .into(this)
 
-inline fun <reified T> T.toConvertModelToJson(type: Class<T>): String {
-    val moshi = Moshi.Builder().build()
-    val adapter: JsonAdapter<T> = moshi.adapter(type)
-    return adapter.toJson(this)
+    }
 }
