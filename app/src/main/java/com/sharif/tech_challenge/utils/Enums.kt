@@ -5,3 +5,9 @@ enum class CodeType(type:Int) {
     Vibrate(1),
     Sound(2)
 }
+
+enum class ThemeType() {
+    sport,
+    art,
+    fun1
+}
