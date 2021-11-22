@@ -24,8 +24,11 @@ object CallBackNet {
             val errorBody = response.errorBody()
 
             ResultNet.ErrorApi(
-                HandleErrorNet.parseCustomError(
-                    errorBodyJson = errorBody?.string() ?: "")
+                CheckErrorApiClass(
+                    status = response.code(),
+                    message_data = "error",
+                    data = errorBody
+                )
             )
         } else {
             return if (response.body() == null) {
