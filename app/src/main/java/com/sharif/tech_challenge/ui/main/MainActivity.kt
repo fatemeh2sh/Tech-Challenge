@@ -13,10 +13,7 @@ import com.sharif.tech_challenge.ui.base.BaseActivity
 import com.sharif.tech_challenge.utils.CodeType
 import com.sharif.tech_challenge.utils.ThemeType
 import com.sharif.tech_challenge.utils.createRandom
-import com.sharif.tech_challenge.utils.extensions.active
-import com.sharif.tech_challenge.utils.extensions.hide
-import com.sharif.tech_challenge.utils.extensions.loadImage
-import com.sharif.tech_challenge.utils.extensions.show
+import com.sharif.tech_challenge.utils.extensions.*
 import com.sharif.tech_challenge.utils.networkHelper.ResultNet
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -80,15 +77,12 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
 
         when(api){
             "Api" -> {
-                Log.e("",(resultNet as ResultNet.ErrorApi<*>).errorCls?.message!!)
                 mViewBinding.tvError?.text = (resultNet as ResultNet.ErrorApi<*>).errorCls?.message!!
             }
             "Exception" -> {
-                Log.e("",(resultNet as ResultNet.ErrorException<*>)?.message!!)
                 mViewBinding.tvError?.text = (resultNet as ResultNet.ErrorException<*>)?.message!!
             }
             "Net"-> {
-                Log.e("",(resultNet as ResultNet.ErrorNetwork<*>)?.message!!)
                 mViewBinding.tvError?.text = (resultNet as ResultNet.ErrorNetwork<*>)?.message!!
             }
         }
@@ -158,6 +152,7 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
 
             itemCard?.let {
                 mViewBinding.cardMaterial.show()
+                mViewBinding.imgIcon.show()
                 mViewBinding.tvTitle.text = it?.title
                 mViewBinding.tvDesc.text = it?.description
 
@@ -179,11 +174,11 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
                 mViewBinding.imgCard.loadImage(item.image)
             }
             CodeType.Vibrate.type -> {
-                mViewBinding.imgCard.hide()
+                mViewBinding.imgCard.gone()
                 mViewModel.startVibrate()
             }
             CodeType.Sound.type -> {
-                mViewBinding.imgCard.hide()
+                mViewBinding.imgCard.gone()
                 item.sound?.let {
                     mViewModel.playSound(it)
                 }
@@ -195,12 +190,15 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
         when(item.tag){
             ThemeType.Sport.type -> {
                 mViewBinding.cardMaterial.backgroundTintList = getColorStateList(android.R.color.holo_blue_light)
+                mViewBinding.imgIcon.setImageResource(R.drawable.ic_sport)
             }
             ThemeType.Art.type -> {
                 mViewBinding.cardMaterial.backgroundTintList = getColorStateList(android.R.color.holo_red_light)
+                mViewBinding.imgIcon.setImageResource(R.drawable.ic_art)
             }
             ThemeType.Fun.type -> {
                 mViewBinding.cardMaterial.backgroundTintList = getColorStateList(android.R.color.holo_green_dark)
+                mViewBinding.imgIcon.setImageResource(R.drawable.ic_fun)
             }
         }
     }
@@ -217,7 +215,7 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
     override fun onClick(v: View?) {
         when(v?.id){
             R.id.btnTry -> {
-                mViewBinding.btnTry.hide()
+                mViewBinding.btnTry.deActive()
                 mViewModel.stopSound()
                 showCard()
             }
