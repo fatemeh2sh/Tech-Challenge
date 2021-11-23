@@ -37,17 +37,11 @@ class MainViewModel @Inject constructor(
     }
 
     fun playSound(url:String){
-        viewModelScope.launch(Dispatchers.IO) {
-            sound.start(url)
-        }
-
-       // sound.start(url)
+        sound.start(url)
     }
 
     fun stopSound(){
-        viewModelScope.launch {
-            sound.stop()
-        }
+        sound.stop()
     }
 
     fun startVibrate(){

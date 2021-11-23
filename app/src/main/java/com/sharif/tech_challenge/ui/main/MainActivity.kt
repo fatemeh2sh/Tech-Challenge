@@ -1,49 +1,39 @@
 package com.sharif.tech_challenge.ui.main
 
-import android.media.MediaPlayer
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.cardview.widget.CardView
-import androidx.core.widget.ImageViewCompat
 import com.sharif.tech_challenge.R
 import com.sharif.tech_challenge.data.model.CardModel
 import com.sharif.tech_challenge.data.model.CardResult
 import com.sharif.tech_challenge.databinding.ActivityMainBinding
-import com.sharif.tech_challenge.service.sound.Sound
-import com.sharif.tech_challenge.service.vibrate.Vibrate
 import com.sharif.tech_challenge.ui.base.BaseActivity
+import com.sharif.tech_challenge.utils.CodeType
+import com.sharif.tech_challenge.utils.ThemeType
 import com.sharif.tech_challenge.utils.createRandom
-import com.sharif.tech_challenge.utils.extensions.*
+import com.sharif.tech_challenge.utils.extensions.active
+import com.sharif.tech_challenge.utils.extensions.hide
+import com.sharif.tech_challenge.utils.extensions.loadImage
+import com.sharif.tech_challenge.utils.extensions.show
 import com.sharif.tech_challenge.utils.networkHelper.ResultNet
-import com.sharif.tech_challenge.utils.playMusic
-import com.sharif.tech_challenge.utils.vibrate
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnClickListener {
+
+    companion object{
+        val arrayData = arrayListOf<CardResult>()
+        val arrayShow = arrayListOf<CardResult>()
+        lateinit var itemCard:CardResult
+    }
 
     private var loading : Boolean = false
         set(value) {
             showLoading(value)
             field = value
         }
-
-    companion object{
-        val arrayData = arrayListOf<CardResult>()
-        val arrayShow = arrayListOf<CardResult>()
-        var randomNumber : Int = -1
-        lateinit var itemCard:CardResult
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,9 +52,7 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
         mViewModel.cardResult.observe(this,{
             when(it){
                 is ResultNet.Loading -> { loading = true }
-                is ResultNet.Success -> {
-                    manageSuccess(it.data)
-                }
+                is ResultNet.Success -> { manageSuccess(it.data) }
                 is ResultNet.ErrorApi -> { manageError("Api",it) }
                 is ResultNet.ErrorException -> { manageError("Exception", it) }
                 is ResultNet.ErrorNetwork -> { manageError("Net", it) }
@@ -127,9 +115,8 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
         var item : CardResult ?= null
         var find = false
 
-        if(arrayData.size == arrayShow.size){
+        if(arrayData.size == arrayShow.size) {
             arrayShow.clear()
-            //return find
         }
 
         for(i in 0 until arrayData.size) {
@@ -163,13 +150,11 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
 
     private fun showCard(){
         var newNumber = createRandom()
-        Toast.makeText(this,newNumber.toString(),Toast.LENGTH_SHORT).show()
+        //Toast.makeText(this,newNumber.toString(),Toast.LENGTH_SHORT).show()
         Log.e("random", "$newNumber ")
 
         if(!isItemRepeat(newNumber)) {
-            mViewBinding.btnTry.show()
-
-            randomNumber = newNumber
+            mViewBinding.btnTry.active()
 
             itemCard?.let {
                 mViewBinding.cardMaterial.show()
@@ -179,7 +164,6 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
                 changeTheme(it)
                 actionCard(it)
             }
-
         } else {
             showCard()
         }
@@ -190,15 +174,15 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
     //region card
     private fun actionCard(item:CardResult) {
         when(item.code){
-            0 -> {
+            CodeType.Picture.type -> {
                 mViewBinding.imgCard.show()
                 mViewBinding.imgCard.loadImage(item.image)
             }
-            1 -> {
+            CodeType.Vibrate.type -> {
                 mViewBinding.imgCard.hide()
                 mViewModel.startVibrate()
             }
-            2 -> {
+            CodeType.Sound.type -> {
                 mViewBinding.imgCard.hide()
                 item.sound?.let {
                     mViewModel.playSound(it)
@@ -209,13 +193,13 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
 
     private fun changeTheme(item: CardResult){
         when(item.tag){
-            "sport" -> {
+            ThemeType.Sport.type -> {
                 mViewBinding.cardMaterial.backgroundTintList = getColorStateList(android.R.color.holo_blue_light)
             }
-            "art" -> {
+            ThemeType.Art.type -> {
                 mViewBinding.cardMaterial.backgroundTintList = getColorStateList(android.R.color.holo_red_light)
             }
-            "fun" -> {
+            ThemeType.Fun.type -> {
                 mViewBinding.cardMaterial.backgroundTintList = getColorStateList(android.R.color.holo_green_dark)
             }
         }
@@ -242,7 +226,6 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
 
     override fun onPause() {
         super.onPause()
-
         mViewModel.stopSound()
     }
 }
