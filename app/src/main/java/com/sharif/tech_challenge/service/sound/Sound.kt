@@ -10,16 +10,19 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class Sound @Inject constructor(@ApplicationContext var context:Context) {
+class Sound @Inject constructor(@ApplicationContext var context:Context): MediaPlayer.OnPreparedListener {
 
-    private var mediaPlayer : MediaPlayer = MediaPlayer()
+    private var mediaPlayer : MediaPlayer ?= MediaPlayer()
 
     fun start(url:String) {
         try {
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
-            mediaPlayer.setDataSource(url)
-            mediaPlayer.prepare()
-            mediaPlayer.start()
+            mediaPlayer = MediaPlayer()
+            mediaPlayer?.apply {
+                setAudioStreamType(AudioManager.STREAM_MUSIC)
+                setDataSource(url)
+                setOnPreparedListener(this@Sound)
+                prepareAsync()
+            }
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -27,5 +30,12 @@ class Sound @Inject constructor(@ApplicationContext var context:Context) {
 
     fun stop() {
         mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
+
+    }
+
+    override fun onPrepared(mp: MediaPlayer?) {
+        mediaPlayer?.start()
     }
 }
