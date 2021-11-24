@@ -9,6 +9,7 @@ import com.sharif.tech_challenge.R
 import com.sharif.tech_challenge.data.model.CardModel
 import com.sharif.tech_challenge.data.model.CardResult
 import com.sharif.tech_challenge.databinding.ActivityMainBinding
+import com.sharif.tech_challenge.iinterface.StatePlayerListener
 import com.sharif.tech_challenge.ui.base.BaseActivity
 import com.sharif.tech_challenge.utils.CodeType
 import com.sharif.tech_challenge.utils.ThemeType
@@ -18,7 +19,7 @@ import com.sharif.tech_challenge.utils.networkHelper.ResultNet
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnClickListener {
+class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnClickListener,StatePlayerListener {
 
     companion object{
         val arrayData = arrayListOf<CardResult>()
@@ -180,7 +181,7 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
             CodeType.Sound.type -> {
                 mViewBinding.imgCard.gone()
                 item.sound?.let {
-                    mViewModel.playSound(it)
+                    mViewModel.playSound(it,this)
                 }
             }
         }
@@ -220,6 +221,14 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
                 showCard()
             }
         }
+    }
+
+    override fun start() {
+       mViewBinding.progressBar.show()
+    }
+
+    override fun stop() {
+       mViewBinding.progressBar.hide()
     }
 
     override fun onPause() {
