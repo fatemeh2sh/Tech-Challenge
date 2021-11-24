@@ -216,6 +216,7 @@ class MainActivity : BaseActivity<MainViewModel,ActivityMainBinding>(), View.OnC
     override fun onClick(v: View?) {
         when(v?.id){
             R.id.btnTry -> {
+                mViewBinding.progressBar.hide()
                 mViewBinding.btnTry.deActive()
                 mViewModel.stopSound()
                 showCard()
